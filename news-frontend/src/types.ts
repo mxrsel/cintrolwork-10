@@ -1,4 +1,3 @@
-// src/types.ts
 export interface News {
     id: number;
     title: string;
