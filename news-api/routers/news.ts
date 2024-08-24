@@ -1,29 +1,28 @@
 import express from "express";
 import mysqlDb from "../mysqlBd";
-import { News, NewsMutation} from "../types";
-import {imagesUpload} from "../multer";
-import {ResultSetHeader} from "mysql2";
-
+import { News, NewsMutation } from "../types";
+import { imagesUpload } from "../multer";
+import { ResultSetHeader } from "mysql2";
 
 const newsRouter = express.Router();
 
 newsRouter.get('/', async (req, res, next) => {
-    try{
+    try {
         const result = await mysqlDb.getConnection().query(
             'SELECT * FROM news'
         );
 
         const news = result[0] as News[];
         return res.send(news);
-    }catch (e) {
-        next(e)
+    } catch (e) {
+        next(e);
     }
 });
 
 newsRouter.get('/:id', async (req, res, next) => {
     const id = req.params.id;
 
-    try{
+    try {
         const result = await mysqlDb.getConnection().query(
             'SELECT * FROM news WHERE id = ?',
             [id]
@@ -31,19 +30,19 @@ newsRouter.get('/:id', async (req, res, next) => {
 
         const news = result[0] as News[];
 
-        if( news.length > 0){
-            return res.status(404).send({error: 'News not found'});
-        }else {
+        if (news.length === 0) {
+            return res.status(404).send({ error: 'News not found' });
+        } else {
             return res.send(news[0]);
         }
     } catch (e) {
-        next(e)
+        next(e);
     }
 });
 
-newsRouter.post ('/', imagesUpload.single('image'), async(req, res, next) => {
-    if(!req.body.title) {
-        return res.status(400).send ({error: 'Title is required'});
+newsRouter.post('/', imagesUpload.single('image'), async (req, res, next) => {
+    if (!req.body.title) {
+        return res.status(400).send({ error: 'Title is required' });
     }
 
     const oneNews: NewsMutation = {
@@ -65,22 +64,28 @@ newsRouter.post ('/', imagesUpload.single('image'), async(req, res, next) => {
         );
 
         const news = getNewResult[0] as News[];
-        return  res.send( news[0])
+        return res.send(news[0]);
     } catch (e) {
         next(e);
     }
 });
 
-newsRouter.delete('/:id', async(req, res, next) => {
+newsRouter.delete('/:id', async (req, res, next) => {
     const id = req.params.id;
 
-    try{
-        await mysqlDb.getConnection().query(
+    try {
+        const [result] = await mysqlDb.getConnection().query<ResultSetHeader>(
             'DELETE FROM news WHERE id = ?',
             [id]
         );
-    }catch (e) {
-        next(e)
+
+        if (result.affectedRows === 0) {
+            return res.status(404).send({ error: 'News not found' });
+        }
+
+        return res.send({ message: 'News deleted successfully' });
+    } catch (e) {
+        next(e);
     }
 });
 
