@@ -1,8 +1,9 @@
 import express from "express";
 import mysqlDb from "../mysqlBd";
-import {News, NewsMutation} from "../types";
+import { News, NewsMutation} from "../types";
 import {imagesUpload} from "../multer";
 import {ResultSetHeader} from "mysql2";
+
 
 const newsRouter = express.Router();
 
@@ -82,6 +83,5 @@ newsRouter.delete('/:id', async(req, res, next) => {
         next(e)
     }
 });
-
 
 export default newsRouter;
